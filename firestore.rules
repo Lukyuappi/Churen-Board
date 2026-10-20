@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 受付PCでログインするスタッフ用アカウント。実際のアドレスは Firebase コンソールのルールにだけ書く（ここは見本）
+    function isStaff() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['staff@example.com'];
+    }
+
+    // お客さん用ページが読む公開データ（待ち組数・待ち時間・卓の残り時間・ランキングだけ）
+    match /public/{doc} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // それ以外（受付の名前・区分・シフトなど）はスタッフだけ
+    match /{collection}/{doc=**} {
+      allow read, write: if isStaff();
+    }
+  }
+}
