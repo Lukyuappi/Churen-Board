@@ -532,18 +532,19 @@ function walkinForm(){
   return `<form class="walkin" id="walkin" autocomplete="off"><b>手伝いに来た人を追加</b>
     <input type="text" id="wkName" maxlength="12" placeholder="名前" list="wkNames" required aria-label="手伝いに来た人の名前">
     <datalist id="wkNames">${staffSorted().map(s=>`<option value="${esc(s.name)}"></option>`).join("")}</datalist>
+    <select id="wkOrg" aria-label="所属"><option value="churen">九連</option><option value="sponsor">イカイさん</option></select>
     <select id="wkRole" aria-label="役割"><option value="player">打つ人</option><option value="reception">受付</option></select>
-    <select id="wkLen" aria-label="いる時間"><option value="1">30分</option><option value="2" selected>1時間</option><option value="3">1時間半</option><option value="4">2時間</option></select>
+    <select id="wkLen" aria-label="いる時間"><option value="1">30分</option><option value="2" selected>1時間</option><option value="3">1時間半</option><option value="4">2時間</option><option value="99">最後まで</option></select>
     <button class="btn sm" type="submit">いまから入ってもらう</button></form>`;
 }
 document.addEventListener("submit",e=>{
   if(e.target.id!=="walkin") return; e.preventDefault(); if(state.readOnly) return;
   const cs=currentSlot(); if(!cs) return;
   const name=$("#wkName").value.trim(); if(!name) return;
-  const role=$("#wkRole").value, len=+$("#wkLen").value;
+  const role=$("#wkRole").value, len=+$("#wkLen").value, org=$("#wkOrg").value;
   safe(async()=>{
     let st=staffSorted().find(x=>x.name===name), sid=st&&st.id;
-    if(!sid){ sid=rid(); await store.set("staff",sid,{name, org:"churen", walkin:true, createdAt:Date.now()}); }
+    if(!sid){ sid=rid(); await store.set("staff",sid,{name, org, walkin:true, createdAt:Date.now()}); }
     for(let k=0;k<len && cs.i+k<SLOTS[cs.day].length;k++) await setRole(cs.day, cs.i+k, sid, role);
   });
 });
@@ -767,10 +768,10 @@ $("#staffList").onclick=e=>{
   const b=e.target.closest("button[data-sact]"); if(!b) return; const id=b.closest(".qitem").dataset.id;
   if(b.dataset.sact==="sdel") armDelete(id); else { pendingDel=null; safe(()=>store.del("staff",id)); }
 };
-const PLAN_STAFF=[["るきあ","churen"],["北村","churen"],["河辺","churen"],["本庄","churen"],["山本","churen"],["浦山","churen"],["原","churen"],["鈴木","churen"],["協賛（イカイ）","sponsor"]];
+const PLAN_STAFF=[["るきあ","churen"],["北村","churen"],["河辺","churen"],["本庄","churen"],["山本","churen"],["浦山","churen"],["原","churen"],["鈴木","churen"],["イカイさん","sponsor"]];
 /* [開始, 終了, 打つ人, 受付] */
-const PLAN={1:[["09:30","10:00","北村,るきあ","原"],["10:00","12:00","協賛（イカイ）","るきあ"],["12:00","12:30","るきあ,河辺",""],["12:30","13:00","るきあ,河辺","原"],["13:00","13:30","るきあ,本庄","原"],["13:30","14:00","るきあ,本庄",""],["14:00","14:30","北村,本庄",""],["14:30","15:00","北村,本庄","鈴木"],["15:00","17:00","本庄,るきあ","鈴木"],["17:00","17:30","北村,るきあ","鈴木"],["17:30","18:30","北村,るきあ",""]],
-            2:[["09:30","10:00","北村,るきあ","原"],["10:00","10:30","北村,るきあ",""],["10:30","12:00","るきあ,河辺",""],["12:00","14:00","協賛（イカイ）",""],["14:00","15:00","協賛（イカイ）","北村"],["15:00","15:30","協賛（イカイ）,山本","原"],["15:30","16:00","協賛（イカイ）,山本",""]]};
+const PLAN={1:[["09:30","10:00","北村,るきあ","原"],["10:00","12:00","イカイさん","るきあ"],["12:00","12:30","るきあ,河辺",""],["12:30","13:00","るきあ,河辺","原"],["13:00","13:30","るきあ,本庄","原"],["13:30","14:00","るきあ,本庄",""],["14:00","14:30","北村,本庄",""],["14:30","15:00","北村,本庄","鈴木"],["15:00","17:00","本庄,るきあ","鈴木"],["17:00","17:30","北村,るきあ","鈴木"],["17:30","18:30","北村,るきあ",""]],
+            2:[["09:30","10:00","北村,るきあ","原"],["10:00","10:30","北村,るきあ",""],["10:30","12:00","るきあ,河辺",""],["12:00","14:00","イカイさん",""],["14:00","15:00","イカイさん","北村"],["15:00","15:30","イカイさん,山本","原"],["15:30","16:00","イカイさん,山本",""]]};
 let importArmed=false;
 document.addEventListener("click",e=>{
   if(e.target.id!=="importPlan" || state.readOnly) return;
