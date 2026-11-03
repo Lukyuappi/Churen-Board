@@ -54,6 +54,31 @@ h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
 .tops{font-weight:700}
 .empty{color:var(--muted);font-size:14px;padding:10px 0}
 .foot{font-size:12px;color:var(--muted);text-align:center}
+.howto-link{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:2px solid var(--pink);border-radius:14px;padding:12px 16px;color:var(--pink);font-weight:900;text-decoration:none}
+.howto{display:flex;flex-direction:column;gap:12px;scroll-margin-top:12px}
+.howto h2{font-size:18px;color:var(--pink)}
+.box{background:var(--surface);border-radius:16px;padding:14px 16px;border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.box h3{margin:0;font-size:16px;font-weight:900}
+.box p{margin:0;font-size:14px}
+.box .cap{font-size:13px;color:var(--muted)}
+.hand{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end}
+.grp{display:flex;gap:2px}
+.tile{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:25px;height:34px;background:#ffffff;border:1px solid #bcd6c7;border-radius:5px;box-shadow:0 3px 0 #2f8a63;line-height:1;font-family:var(--f-body)}
+.tile b{font-size:13px;font-weight:700;color:#2a2730}
+.tile i{font-style:normal;font-size:8.5px;margin-top:2px;color:#5f5a66}
+.tile.red b{color:#c2185b}
+.steps{margin:0;padding:0;list-style:none;counter-reset:st;display:flex;flex-direction:column;gap:10px}
+.steps li{counter-increment:st;display:grid;grid-template-columns:30px 1fr;gap:10px;font-size:14px}
+.steps li::before{content:counter(st);width:28px;height:28px;border-radius:50%;background:var(--pink);color:#fff;font-weight:900;display:grid;place-items:center}
+.steps b{display:block;font-size:15px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rules div{background:var(--green-soft);border-radius:10px;padding:8px 10px}
+.rules small{display:block;font-size:11px;font-weight:700;color:var(--green)}
+.rules span{font-size:14px;font-weight:700}
+.words{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px}
+.words dt{font-weight:900;color:var(--pink)}
+.words dd{margin:0}
+.promise{margin:0;padding-left:1.2em;font-size:14px;display:flex;flex-direction:column;gap:4px}
 .err{background:#fff1d6;color:#5a3a00;border-radius:12px;padding:10px 14px;font-size:14px}
 </style>
 </head>
@@ -73,6 +98,8 @@ h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
   </section>
   <div class="note">順番が来たら、受付でお名前をお呼びします。待ち時間が長いときは、ほかの展示を回ってきても大丈夫です。めやすの時間までに受付へ戻ってきてください。</div>
 
+  <a class="howto-link" href="#howto"><span>はじめての人へ：九連のあそびかた</span><span aria-hidden="true">↓</span></a>
+
   <h2>卓の状況</h2>
   <div class="tables" id="tables"><div class="empty">読み込み中…</div></div>
 
@@ -80,6 +107,64 @@ h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
   <div class="rank"><ol id="rank"><li class="empty">まだ記録がありません。最初のハイスコアを出すのはあなたかも。</li></ol></div>
   <h2>トップ賞（最近の1着）</h2>
   <div class="tops" id="tops"><span class="empty">1着になると、ここに名前が出ます。</span></div>
+
+
+  <section class="howto" id="howto">
+    <h2>九連のあそびかた</h2>
+    <div class="box">
+      <h3>あがりの形は「3枚 × 4 ＋ 2枚」</h3>
+      <div class="hand">
+      <span class="grp"><span class="tile"><b>一</b><i>萬</i></span><span class="tile"><b>二</b><i>萬</i></span><span class="tile"><b>三</b><i>萬</i></span></span>
+      <span class="grp"><span class="tile" title="四筒"><svg viewBox="0 0 20 28" width="19" height="27" aria-hidden="true"><circle cx="6" cy="8" r="3.4" fill="none" stroke="#1f4e9a" stroke-width="1.6"/><circle cx="6" cy="8" r="1.1" fill="#1f4e9a"/><circle cx="14" cy="8" r="3.4" fill="none" stroke="#2f8a63" stroke-width="1.6"/><circle cx="14" cy="8" r="1.1" fill="#2f8a63"/><circle cx="6" cy="20" r="3.4" fill="none" stroke="#2f8a63" stroke-width="1.6"/><circle cx="6" cy="20" r="1.1" fill="#2f8a63"/><circle cx="14" cy="20" r="3.4" fill="none" stroke="#1f4e9a" stroke-width="1.6"/><circle cx="14" cy="20" r="1.1" fill="#1f4e9a"/></svg></span><span class="tile" title="五筒"><svg viewBox="0 0 20 28" width="19" height="27" aria-hidden="true"><circle cx="5.5" cy="6.5" r="3" fill="none" stroke="#1f4e9a" stroke-width="1.6"/><circle cx="5.5" cy="6.5" r="1.1" fill="#1f4e9a"/><circle cx="14.5" cy="6.5" r="3" fill="none" stroke="#2f8a63" stroke-width="1.6"/><circle cx="14.5" cy="6.5" r="1.1" fill="#2f8a63"/><circle cx="10" cy="14" r="3" fill="none" stroke="#c2185b" stroke-width="1.6"/><circle cx="10" cy="14" r="1.1" fill="#c2185b"/><circle cx="5.5" cy="21.5" r="3" fill="none" stroke="#2f8a63" stroke-width="1.6"/><circle cx="5.5" cy="21.5" r="1.1" fill="#2f8a63"/><circle cx="14.5" cy="21.5" r="3" fill="none" stroke="#1f4e9a" stroke-width="1.6"/><circle cx="14.5" cy="21.5" r="1.1" fill="#1f4e9a"/></svg></span><span class="tile" title="六筒"><svg viewBox="0 0 20 28" width="19" height="27" aria-hidden="true"><circle cx="6" cy="5.5" r="2.8" fill="none" stroke="#2f8a63" stroke-width="1.6"/><circle cx="6" cy="5.5" r="1.1" fill="#2f8a63"/><circle cx="14" cy="5.5" r="2.8" fill="none" stroke="#2f8a63" stroke-width="1.6"/><circle cx="14" cy="5.5" r="1.1" fill="#2f8a63"/><circle cx="6" cy="14.5" r="2.8" fill="none" stroke="#c2185b" stroke-width="1.6"/><circle cx="6" cy="14.5" r="1.1" fill="#c2185b"/><circle cx="14" cy="14.5" r="2.8" fill="none" stroke="#c2185b" stroke-width="1.6"/><circle cx="14" cy="14.5" r="1.1" fill="#c2185b"/><circle cx="6" cy="22.5" r="2.8" fill="none" stroke="#c2185b" stroke-width="1.6"/><circle cx="6" cy="22.5" r="1.1" fill="#c2185b"/><circle cx="14" cy="22.5" r="2.8" fill="none" stroke="#c2185b" stroke-width="1.6"/><circle cx="14" cy="22.5" r="1.1" fill="#c2185b"/></svg></span></span>
+      <span class="grp"><span class="tile" title="七索"><svg viewBox="0 0 20 28" width="19" height="27" aria-hidden="true"><rect x="8.5" y="1.7" width="3" height="6.6" rx="1.5" fill="#c2185b"/><line x1="8.5" x2="11.5" y1="5" y2="5" stroke="#ffffff" stroke-width="0.8"/><rect x="2.5" y="10.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="2.5" x2="5.5" y1="14" y2="14" stroke="#ffffff" stroke-width="0.8"/><rect x="8.5" y="10.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="8.5" x2="11.5" y1="14" y2="14" stroke="#ffffff" stroke-width="0.8"/><rect x="14.5" y="10.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="14.5" x2="17.5" y1="14" y2="14" stroke="#ffffff" stroke-width="0.8"/><rect x="2.5" y="19.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="2.5" x2="5.5" y1="23" y2="23" stroke="#ffffff" stroke-width="0.8"/><rect x="8.5" y="19.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="8.5" x2="11.5" y1="23" y2="23" stroke="#ffffff" stroke-width="0.8"/><rect x="14.5" y="19.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="14.5" x2="17.5" y1="23" y2="23" stroke="#ffffff" stroke-width="0.8"/></svg></span><span class="tile" title="八索"><svg viewBox="0 0 20 28" width="19" height="27" aria-hidden="true"><rect x="1.7000000000000002" y="4.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="1.7000000000000002" x2="4.7" y1="8" y2="8" stroke="#ffffff" stroke-width="0.8"/><rect x="6.2" y="4.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="6.2" x2="9.2" y1="8" y2="8" stroke="#ffffff" stroke-width="0.8"/><rect x="10.8" y="4.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="10.8" x2="13.8" y1="8" y2="8" stroke="#ffffff" stroke-width="0.8"/><rect x="15.3" y="4.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="15.3" x2="18.3" y1="8" y2="8" stroke="#ffffff" stroke-width="0.8"/><rect x="1.7000000000000002" y="16.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="1.7000000000000002" x2="4.7" y1="20" y2="20" stroke="#ffffff" stroke-width="0.8"/><rect x="6.2" y="16.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="6.2" x2="9.2" y1="20" y2="20" stroke="#ffffff" stroke-width="0.8"/><rect x="10.8" y="16.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="10.8" x2="13.8" y1="20" y2="20" stroke="#ffffff" stroke-width="0.8"/><rect x="15.3" y="16.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="15.3" x2="18.3" y1="20" y2="20" stroke="#ffffff" stroke-width="0.8"/></svg></span><span class="tile" title="九索"><svg viewBox="0 0 20 28" width="19" height="27" aria-hidden="true"><rect x="2.5" y="1.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="2.5" x2="5.5" y1="5" y2="5" stroke="#ffffff" stroke-width="0.8"/><rect x="8.5" y="1.7" width="3" height="6.6" rx="1.5" fill="#c2185b"/><line x1="8.5" x2="11.5" y1="5" y2="5" stroke="#ffffff" stroke-width="0.8"/><rect x="14.5" y="1.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="14.5" x2="17.5" y1="5" y2="5" stroke="#ffffff" stroke-width="0.8"/><rect x="2.5" y="10.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="2.5" x2="5.5" y1="14" y2="14" stroke="#ffffff" stroke-width="0.8"/><rect x="8.5" y="10.7" width="3" height="6.6" rx="1.5" fill="#c2185b"/><line x1="8.5" x2="11.5" y1="14" y2="14" stroke="#ffffff" stroke-width="0.8"/><rect x="14.5" y="10.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="14.5" x2="17.5" y1="14" y2="14" stroke="#ffffff" stroke-width="0.8"/><rect x="2.5" y="19.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="2.5" x2="5.5" y1="23" y2="23" stroke="#ffffff" stroke-width="0.8"/><rect x="8.5" y="19.7" width="3" height="6.6" rx="1.5" fill="#c2185b"/><line x1="8.5" x2="11.5" y1="23" y2="23" stroke="#ffffff" stroke-width="0.8"/><rect x="14.5" y="19.7" width="3" height="6.6" rx="1.5" fill="#2f8a63"/><line x1="14.5" x2="17.5" y1="23" y2="23" stroke="#ffffff" stroke-width="0.8"/></svg></span></span>
+      <span class="grp"><span class="tile"><b>東</b></span><span class="tile"><b>東</b></span><span class="tile"><b>東</b></span></span>
+      <span class="grp"><span class="tile red"><b>中</b></span><span class="tile red"><b>中</b></span></span>
+      </div>
+      <p class="cap">左から萬子（マンズ）・筒子（ピンズ）・索子（ソーズ）の続き番号、東の3枚、中のペア。続き番号の3枚か同じ牌3枚のセットを4つと、ペアを1つそろえます。</p>
+    </div>
+    <div class="box">
+      <h3>九連での過ごしかた</h3>
+      <ol class="steps">
+        <li><span><b>お名前で呼ばれたら、受付へ</b>席までご案内します。</span></li>
+        <li><span><b>席について、自己紹介</b>人数が足りないときはスタッフが一緒に打ちます。はじめての人には、教えるスタッフがつきます。</span></li>
+        <li><span><b>東風戦スタート</b>東1局〜東4局までの短い勝負。牌は全自動卓が混ぜてくれます。</span></li>
+        <li><span><b>30分たったら「その局で最後」</b>いまやっている局が終わったところでおしまいです。</span></li>
+        <li><span><b>点数を記録して、ランキングへ</b>高い点数は、このページの「今日のハイスコア」に載ります。何回でも挑戦OK！</span></li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>九連のルール <small style="font-size:12px;color:var(--muted);font-weight:700">雀魂・Mリーグとほぼ同じ</small></h3>
+      <div class="rules">
+        <div><small>はじめの点数</small><span>25,000点</span></div>
+        <div><small>赤ドラ</small><span>赤い5が3枚</span></div>
+        <div><small>鳴き</small><span>喰いタン・後付けOK</span></div>
+        <div><small>ダブロン</small><span>2人ともあがれる</span></div>
+        <div><small>飛び</small><span>なし・最後まで遊べる</span></div>
+        <div><small>役と点数</small><span>スタッフと一緒に</span></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>麻雀ことば辞典</h3>
+      <dl class="words">
+        <dt>ツモ</dt><dd>自分で引いた牌であがること</dd>
+        <dt>ロン</dt><dd>ほかの人が捨てた牌であがること</dd>
+        <dt>ポン</dt><dd>捨てられた牌をもらって、同じ牌3枚を作る</dd>
+        <dt>チー</dt><dd>左どなりの捨て牌で、続き番号3枚を作る</dd>
+        <dt>テンパイ</dt><dd>あと1枚であがれる状態</dd>
+        <dt>リーチ</dt><dd>テンパイを宣言！点数が上がる、はじめての人の強い味方</dd>
+      </dl>
+    </div>
+    <div class="box">
+      <h3>九連のおやくそく</h3>
+      <ul class="promise">
+        <li>牌と卓はやさしく扱ってね</li>
+        <li>卓の上には飲み物を置かないでね</li>
+        <li>呼ばれたときにいなかったら、次の方を先にご案内します。戻ったら受付に声をかけてね</li>
+        <li>お友だちの対局は、後ろから観戦OK。手牌のことは声に出さないでね</li>
+        <li>わからないことは、近くのスタッフに何でも聞いてね</li>
+      </ul>
+    </div>
+  </section>
 
   <p class="foot" id="upd"></p>
 </div>
