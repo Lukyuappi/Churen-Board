@@ -32,6 +32,10 @@ header p{margin:0;font-size:13px;color:var(--muted)}
 .wait .k{font-size:14px;font-weight:700;opacity:.9}
 .wait .v{font-size:56px;font-weight:900;line-height:1.1;letter-spacing:.01em}
 .wait .s{font-size:15px;font-weight:700}
+.callnow{background:var(--pink);color:#fff;border-radius:20px;padding:16px 22px;display:flex;flex-direction:column;gap:2px}
+.callnow .k{font-size:14px;font-weight:700;opacity:.9}
+.callnow .nos{font-size:40px;font-weight:900;line-height:1.15;font-family:var(--f-num)}
+.callnow .s{font-size:14px;font-weight:700}
 .note{background:var(--surface);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--muted);border:1px solid var(--line)}
 h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
 .tables{display:flex;flex-direction:column;gap:10px}
@@ -96,7 +100,8 @@ h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
     <span class="v" id="waitV">—</span>
     <span class="s" id="waitS">読み込み中…</span>
   </section>
-  <div class="note">順番が来たら、受付でお名前をお呼びします。待ち時間が長いときは、ほかの展示を回ってきても大丈夫です。めやすの時間までに受付へ戻ってきてください。</div>
+  <section class="callnow" id="callNow" hidden aria-live="assertive"><span class="k">いま呼び出し中の番号</span><span class="nos" id="callNos"></span><span class="s">受付までお越しください</span></section>
+  <div class="note">順番が来たら、受付で番号とお名前をお呼びします。待ち時間が長いときは、ほかの展示を回ってきても大丈夫です。めやすの時間の少し前に受付へ戻ってきてください。グループの人数によって、呼び出しの順番が前後することがあります。</div>
 
   <a class="howto-link" href="#howto"><span>あそびかたブック（スマホ版）</span><span aria-hidden="true">↓</span></a>
 
@@ -192,6 +197,8 @@ h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
     const est=estWaitMin(data);
     $("#waitV").textContent = est===null ? "準備中" : est===0 ? "すぐ遊べます" : "約"+est+"分";
     $("#waitS").textContent = (data.waitingGroups||0)+"組 待ち";
+    const cn=data.calling||[];
+    $("#callNow").hidden=!cn.length; $("#callNos").textContent=cn.map(n=>n+"番").join("・");
     const ts=data.tables||[];
     $("#tables").innerHTML = ts.length ? ts.map(t=>{
       const play=t.status==="playing", r=(t.endsAt||0)-Date.now();
