@@ -67,6 +67,7 @@ h2.sec .count{font-family:var(--f-num);background:var(--pink-soft);color:var(--p
 .tcard{background:var(--felt);color:var(--on-felt);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;position:relative;overflow:hidden}
 .tcard.free{background:var(--surface);color:var(--ink);border:2px dashed var(--line)}
 .tcard.closed{background:var(--surface);color:var(--muted);border:2px solid var(--line);opacity:.8}
+.selfnote{background:rgba(255,255,255,.16);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700}
 .tcard.over{box-shadow:0 0 0 4px var(--alert)}
 .thead{display:flex;align-items:center;gap:10px}
 .wind{font-family:var(--f-display);font-size:30px;line-height:1;width:48px;height:48px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.14)}
@@ -127,7 +128,13 @@ h2.sec .count{font-family:var(--f-num);background:var(--pink-soft);color:var(--p
 .shift th{color:var(--muted);font-weight:700;white-space:nowrap}
 .shift td.nm{font-weight:700;white-space:nowrap}
 .shift td.nm small{display:block;font-weight:400;color:var(--muted);font-size:11px}
-.shift select{border:1.5px solid var(--line);border-radius:8px;padding:4px 6px;background:var(--bg);width:100%;min-width:96px}
+.shift select{border:1.5px solid var(--line);border-radius:8px;padding:3px 4px;background:var(--bg);width:100%;min-width:62px}
+.shift select.set.r-reception{border-color:var(--pink);background:var(--pink-soft)}
+.shift select.r-rest{color:var(--muted)}
+.shift tr.now>*{background:var(--pink-soft)}
+.shift td.st{font-size:12px;font-weight:700;white-space:nowrap}
+.shift td.st.ng{color:var(--alert)}
+.shift td.st.thin{color:#b26a00}
 .shift select.set{border-color:var(--felt);background:var(--ok-bg)}
 .shift tr.lack td{font-size:12px;color:var(--alert);font-weight:700;border-bottom:0}
 .shift tr.lack td.okc{color:var(--ok)}
@@ -147,6 +154,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .sum-tile.hot{border-color:var(--pink);background:var(--pink-soft)}
 .pill.warn{background:var(--warn);color:#fff}
 .nowshift{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:4px;font-size:14px}
+.walkin{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:8px 12px;margin-bottom:8px;font-size:13px}
+.walkin input,.walkin select{border:1.5px solid var(--line);border-radius:8px;padding:4px 6px;background:var(--bg);font:inherit}
+.walkin input{width:9em}
 .nowshift b{font-family:var(--f-num);color:var(--felt)}
 .nowshift span em{font-style:normal;color:var(--muted);font-size:12px;margin-right:4px}
 .qitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -319,7 +329,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
           <button type="button" data-v="2" aria-pressed="false">2日目 11/8（日）</button>
         </div>
         <div class="panel scroll"><table class="shift" id="shiftTbl"></table></div>
-        <p class="hint" style="margin-top:8px">役割を選ぶと全員の画面にすぐ反映されます。受付・案内、1卓、2卓のどれかが空いている時間は赤く表示します（ブースを無人にしないため）。</p>
+        <p class="hint" style="margin-top:8px">30分ごとに「打つ・受付・休憩」を選びます。選ぶと全員の画面にすぐ反映されます。打つ人がいない時間は赤、1人しかいない時間は黄色で出ます。</p>
+        <div class="panel" style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+          <b>シフト案を読み込む</b>
+          <span class="hint">11/7・11/8のシフト案（るきあ作成）を、この表にまとめて入れます。名前がまだないメンバーは自動で登録します。すでに入れた役割は上書きされます。</span>
+          <button class="btn quiet" type="button" id="importPlan">シフト案を読み込む</button>
+        </div>
       </div>
     </div>
   </section>
@@ -366,11 +381,12 @@ const levelList = q => { const L=levelsOf(q), out=[]; ["new","net","exp"].forEac
 const levelChips = q => { const L=levelsOf(q); return ["new","net","exp"].filter(k=>L[k]).map(k=>`${lvChip(k)}×${L[k]}`).join(" "); };
 const lvChip = lv => lv && LEVELS[lv] ? `<span class="lv"><i class="dot ${lv}"></i>${LEVELS[lv]}</span>` : "";
 const state = { tables:{}, queue:{}, games:{}, staff:{}, shifts:{}, settings:{durationMin:30}, ready:false, local:false, readOnly:false };
-const SLOTS = { 1:[["10:00","12:00"],["12:00","14:00"],["14:00","16:00"],["16:00","18:00"]], 2:[["10:00","12:00"],["12:00","14:00"],["14:00","16:00"]] };
+const halfHours=(from,to)=>{ const pad=n=>String(n).padStart(2,"0"); const out=[]; let [h,m]=from.split(":").map(Number); const end=to.split(":").map(Number); while(h*60+m < end[0]*60+end[1]){ const a=pad(h)+":"+pad(m); m+=30; if(m>=60){h++;m-=60;} out.push([a,pad(h)+":"+pad(m)]); } return out; };
+const SLOTS = { 1:halfHours("09:30","18:30"), 2:halfHours("09:30","16:00") };
 const DAY_DATE = { 1:"2026-11-07", 2:"2026-11-08" };
-const ROLES = [["","—"],["reception","受付・案内"],["t1","1卓担当"],["t2","2卓担当"],["player","打ち手・教え役"],["rest","休憩"]];
+const ROLES = [["","—"],["player","打つ人"],["reception","受付"],["rest","休憩"]];
 const ROLE_NAME = Object.fromEntries(ROLES);
-const REQUIRED = ["reception","t1","t2"];
+
 const slotId = (d,i) => `d${d}-s${i}`;
 function currentSlot(now=new Date()){
   const ymd = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`, hm = pad(now.getHours())+":"+pad(now.getMinutes());
@@ -501,7 +517,7 @@ function setView(v){
   render();
 }
 const staffSorted = () => Object.entries(state.staff).map(([id,s])=>({id,...s})).sort((a,b)=>(a.org===b.org?0:a.org==="churen"?-1:1)||(a.createdAt-b.createdAt));
-const roleOf = (d,i,sid) => { const r=((state.shifts[slotId(d,i)]||{}).assign||{})[sid]||""; return r==="guide"?"reception":r; };
+const roleOf = (d,i,sid) => { const r=((state.shifts[slotId(d,i)]||{}).assign||{})[sid]||""; return r==="guide"?"reception":(r==="t1"||r==="t2")?"player":r; };
 function namesInRole(d,i,role){ return staffSorted().filter(s=>roleOf(d,i,s.id)===role).map(s=>s.name); }
 function renderNowShift(){
   const el=$("#nowShift"); const cs=currentSlot();
@@ -509,7 +525,32 @@ function renderNowShift(){
   if(!cs){ el.innerHTML='<div class="nowshift"><span>本番の時間になると、ここに「いまのシフト」が出ます。シフトは「シフト」タブで入れます。</span></div>'; return; }
   const [a,b]=SLOTS[cs.day][cs.i];
   const parts=ROLES.filter(([k])=>k&&k!=="rest").map(([k,label])=>{ const ns=namesInRole(cs.day,cs.i,k); return `<span><em>${label}</em>${ns.length?ns.map(esc).join("・"):'<span style="color:var(--alert)">未定</span>'}</span>`; }).join("");
-  el.innerHTML=`<div class="nowshift"><b>${cs.day}日目 ${a}〜${b}</b>${parts}</div>`;
+  el.innerHTML=`<div class="nowshift"><b>${cs.day}日目 ${a}〜${b}</b>${parts}</div>`+walkinForm();
+}
+function walkinForm(){
+  if(state.readOnly) return "";
+  return `<form class="walkin" id="walkin" autocomplete="off"><b>手伝いに来た人を追加</b>
+    <input type="text" id="wkName" maxlength="12" placeholder="名前" list="wkNames" required aria-label="手伝いに来た人の名前">
+    <datalist id="wkNames">${staffSorted().map(s=>`<option value="${esc(s.name)}"></option>`).join("")}</datalist>
+    <select id="wkRole" aria-label="役割"><option value="player">打つ人</option><option value="reception">受付</option></select>
+    <select id="wkLen" aria-label="いる時間"><option value="1">30分</option><option value="2" selected>1時間</option><option value="3">1時間半</option><option value="4">2時間</option></select>
+    <button class="btn sm" type="submit">いまから入ってもらう</button></form>`;
+}
+document.addEventListener("submit",e=>{
+  if(e.target.id!=="walkin") return; e.preventDefault(); if(state.readOnly) return;
+  const cs=currentSlot(); if(!cs) return;
+  const name=$("#wkName").value.trim(); if(!name) return;
+  const role=$("#wkRole").value, len=+$("#wkLen").value;
+  safe(async()=>{
+    let st=staffSorted().find(x=>x.name===name), sid=st&&st.id;
+    if(!sid){ sid=rid(); await store.set("staff",sid,{name, org:"churen", walkin:true, createdAt:Date.now()}); }
+    for(let k=0;k<len && cs.i+k<SLOTS[cs.day].length;k++) await setRole(cs.day, cs.i+k, sid, role);
+  });
+});
+async function setRole(day,i,sid,v){
+  const id=slotId(day,i);
+  if(state.shifts[id]) await store.update("shifts",id,{["assign."+sid]:v});
+  else { state.shifts[id]={day,slot:i,assign:{[sid]:v}}; await store.set("shifts",id,{day,slot:i,assign:{[sid]:v}}); }
 }
 function renderSummary(){
   const ts=tablesSorted(), playing=ts.filter(t=>t.status==="playing"), free=ts.filter(t=>t.status==="free");
@@ -534,12 +575,14 @@ function renderShift(){
   const slots=SLOTS[shiftDay], cs=currentSlot();
   const isNow=i=>cs&&cs.day===shiftDay&&cs.i===i;
   if(!ss.length){ $("#shiftTbl").innerHTML='<tbody><tr><td style="color:var(--muted)">スタッフを登録すると、ここで時間ごとの役割を選べます。</td></tr></tbody>'; return; }
-  const head=`<thead><tr><th>名前</th>${slots.map(([a,b],i)=>`<th class="${isNow(i)?'now':''}">${a}〜${b}</th>`).join("")}</tr></thead>`;
-  const rows=ss.map(s=>`<tr><td class="nm">${esc(s.name)}<small>${s.org==="sponsor"?"協賛":"九連"}</small></td>${slots.map((_,i)=>{ const r=roleOf(shiftDay,i,s.id);
-      return `<td class="${isNow(i)?'now':''}"><select data-sid="${s.id}" data-slot="${i}" class="${r?'set':''}" aria-label="${esc(s.name)} ${slots[i][0]}" ${state.readOnly?'disabled':''}>${ROLES.map(([k,l])=>`<option value="${k}" ${k===r?'selected':''}>${l}</option>`).join("")}</select></td>`; }).join("")}</tr>`).join("");
-  const lack=`<tr class="lack"><td>足りない役割</td>${slots.map((_,i)=>{ const miss=REQUIRED.filter(k=>!namesInRole(shiftDay,i,k).length).map(k=>ROLE_NAME[k]);
-      return miss.length?`<td>${miss.join("・")}</td>`:'<td class="okc">そろっています</td>'; }).join("")}</tr>`;
-  $("#shiftTbl").innerHTML=head+'<tbody>'+rows+lack+'</tbody>';
+  const SHORT={"":"—",player:"打つ",reception:"受付",rest:"休憩"};
+  const head=`<thead><tr><th>時間</th>${ss.map(s=>`<th>${esc(s.name)}<small style="display:block;font-weight:400">${s.org==="sponsor"?"協賛":s.walkin?"随時":"九連"}</small></th>`).join("")}<th>状況</th></tr></thead>`;
+  const rows=slots.map(([a,b],i)=>{
+    const np=namesInRole(shiftDay,i,"player").length, nr=namesInRole(shiftDay,i,"reception").length;
+    const st = np+nr===0 ? '<td class="st ng">だれもいない</td>' : np===0 ? '<td class="st ng">打つ人がいない</td>' : (np+nr)===1 ? '<td class="st thin">1人で受付も</td>' : `<td class="st okc">打${np}${nr?"・受付"+nr:""}</td>`;
+    return `<tr class="${isNow(i)?'now':''}"><th>${a}〜${b}</th>${ss.map(s=>{ const r=roleOf(shiftDay,i,s.id);
+      return `<td><select data-sid="${s.id}" data-slot="${i}" class="${r?'set':''} r-${r||'none'}" aria-label="${esc(s.name)} ${a}" ${state.readOnly?'disabled':''}>${ROLES.map(([k])=>`<option value="${k}" ${k===r?'selected':''}>${SHORT[k]}</option>`).join("")}</select></td>`; }).join("")}${st}</tr>`; }).join("");
+  $("#shiftTbl").innerHTML=head+'<tbody>'+rows+'</tbody>';
 }
 function render(){
   $("#clock").textContent = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
@@ -571,6 +614,7 @@ function renderTables(){
         <div class="timer" data-timer="${t.id}">${fmtRemain(r)}<small>${fmtClock(t.startedAt)} 開始 / ${fmtClock(t.endsAt)} 打ち切り</small></div>
         <div class="bar"><i style="width:${pct}%"></i></div>
         ${over?'<div class="overmsg">今の局で終了してください（次の局に進まない）</div>':''}
+        ${t.self?'<div class="selfnote">セルフ卓（経験者のみ・スタッフなし）｜打ち切りの声かけと点数の記録だけ行う</div>':''}
         <div class="seats">${seats}</div>
         ${needHelp?'<div style="font-size:13px;opacity:.9">リアル麻雀がはじめての人がいます。教え役スタッフが後ろに付いてください。</div>':''}
         <div class="tactions">
@@ -723,11 +767,37 @@ $("#staffList").onclick=e=>{
   const b=e.target.closest("button[data-sact]"); if(!b) return; const id=b.closest(".qitem").dataset.id;
   if(b.dataset.sact==="sdel") armDelete(id); else { pendingDel=null; safe(()=>store.del("staff",id)); }
 };
+const PLAN_STAFF=[["るきあ","churen"],["北村","churen"],["河辺","churen"],["本庄","churen"],["山本","churen"],["浦山","churen"],["原","churen"],["鈴木","churen"],["協賛（イカイ）","sponsor"]];
+/* [開始, 終了, 打つ人, 受付] */
+const PLAN={1:[["09:30","10:00","北村,るきあ","原"],["10:00","12:00","協賛（イカイ）","るきあ"],["12:00","12:30","るきあ,河辺",""],["12:30","13:00","るきあ,河辺","原"],["13:00","13:30","るきあ,本庄","原"],["13:30","14:00","るきあ,本庄",""],["14:00","14:30","北村,本庄",""],["14:30","15:00","北村,本庄","鈴木"],["15:00","17:00","本庄,るきあ","鈴木"],["17:00","17:30","北村,るきあ","鈴木"],["17:30","18:30","北村,るきあ",""]],
+            2:[["09:30","10:00","北村,るきあ","原"],["10:00","10:30","北村,るきあ",""],["10:30","12:00","るきあ,河辺",""],["12:00","14:00","協賛（イカイ）",""],["14:00","15:00","協賛（イカイ）","北村"],["15:00","15:30","協賛（イカイ）,山本","原"],["15:30","16:00","協賛（イカイ）,山本",""]]};
+let importArmed=false;
+document.addEventListener("click",e=>{
+  if(e.target.id!=="importPlan" || state.readOnly) return;
+  const b=e.target;
+  if(!importArmed){ importArmed=true; b.textContent="もう一度押すと読み込みます（上書き）"; setTimeout(()=>{ importArmed=false; b.textContent="シフト案を読み込む"; },5000); return; }
+  importArmed=false; b.disabled=true; b.textContent="読み込み中…";
+  safe(async()=>{
+    const ids={};
+    for(const [name,org] of PLAN_STAFF){ let st=staffSorted().find(x=>x.name===name); if(st) ids[name]=st.id; else { const id=rid(); await store.set("staff",id,{name,org,createdAt:Date.now()}); ids[name]=id; } }
+    for(const d of [1,2]){
+      for(let i=0;i<SLOTS[d].length;i++){
+        const [a]=SLOTS[d][i]; const row=PLAN[d].find(([f,t])=>a>=f&&a<t);
+        const assign={}; Object.values(ids).forEach(id=>assign[id]="");
+        if(row){ row[2].split(",").filter(Boolean).forEach(n=>assign[ids[n]]="player"); row[3].split(",").filter(Boolean).forEach(n=>assign[ids[n]]="reception"); }
+        const prev=(state.shifts[slotId(d,i)]||{}).assign||{};
+        const doc={day:d,slot:i,assign:{...prev,...assign}}; state.shifts[slotId(d,i)]=doc;
+        await store.set("shifts",slotId(d,i),doc);
+      }
+    }
+    b.textContent="読み込みました"; b.disabled=false; render();
+  });
+});
 $("#daySel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; shiftDay=+b.dataset.v; $("#daySel").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderShift(); };
 $("#shiftTbl").onchange=e=>{
   const s=e.target.closest("select[data-sid]"); if(!s) return;
   const sid=s.dataset.sid, i=+s.dataset.slot, id=slotId(shiftDay,i), v=s.value;
-  safe(async()=>{ if(state.shifts[id]) await store.update("shifts",id,{["assign."+sid]:v}); else { state.shifts[id]={day:shiftDay,slot:i,assign:{[sid]:v}}; await store.set("shifts",id,{day:shiftDay,slot:i,assign:{[sid]:v}}); } });
+  safe(()=>setRole(shiftDay,i,sid,v));
 };
 $("#durSel").onchange=e=>{ const v=+e.target.value; safe(()=>store.set("settings","main",{durationMin:v})); state.settings.durationMin=v; };
 
@@ -786,6 +856,7 @@ function openSeat(tid){
     const beginners=cnt("new")+cnt("net"), helpers=cnt("exp")+names.slice(0,4).filter(p=>p.staff).length;
     const mixEl=$("#mix");
     if(!guests.length){ mixEl.className="mix"; mixEl.textContent="組を選んでください。"; }
+    else if(guests.length===4 && cnt("exp")===4){ mixEl.className="mix"; mixEl.innerHTML=`${lvChip("exp")} 4人の<b>セルフ卓</b>です。スタッフは入りません。卓に「セルフ卓カード」を置いて、打ち切りの声かけと点数の記録だけスタッフが行います。`; }
     else if(beginners && !helpers){ mixEl.className="mix warn"; mixEl.textContent="全員がリアル麻雀はじめてです。経験者の組を足すか、1席をスタッフにして、教え役も付けてください。"; }
     else { mixEl.className="mix"; mixEl.innerHTML=`この卓：${cnt("new")?lvChip("new")+" "+cnt("new")+"人　":""}${cnt("net")?lvChip("net")+" "+cnt("net")+"人　":""}${cnt("exp")?lvChip("exp")+" "+cnt("exp")+"人　":""}スタッフ ${4-guests.length}人${beginners?"（教え役を付ける）":""}`; }
     rowsEl.innerHTML = names.slice(0,4).map((p,i)=>`<div class="seatrow"><b>${WINDS[i]}</b>
@@ -804,7 +875,8 @@ function openSeat(tid){
     const now=Date.now(), dur=(state.settings.durationMin||30)*60000;
     closeSheet();
     safe(async()=>{
-      await store.update("tables",tid,{status:"playing",players,startedAt:now,endsAt:now+dur});
+      const self=players.every(p=>!p.staff && p.level==="exp");
+      await store.update("tables",tid,{status:"playing",players,self,startedAt:now,endsAt:now+dur});
       for(const q of qids) await store.update("queue",q,{status:"seated",seatedAt:now,table:tid});
     });
   };
