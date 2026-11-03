@@ -151,7 +151,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .nowshift span em{font-style:normal;color:var(--muted);font-size:12px;margin-right:4px}
 .qitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .qitem.called{border-color:var(--pink);background:var(--pink-soft)}
-.nudge{list-style:none;background:#fff1d6;color:#5a3a00;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;margin-bottom:8px}
+.nudge{list-style:none;background:#fff1d6;color:#5a3a00;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.nudge .nb{display:flex;flex-wrap:wrap;gap:6px}
+.nudge .nb span{background:#fff;border-radius:8px;padding:2px 8px}
+.nudge small{font-weight:500}
 .hint.ok{color:var(--felt);font-weight:700;font-size:15px}
 .qno{font-family:var(--f-num);font-weight:600;font-size:20px;color:var(--felt);min-width:2.2em;text-align:center}
 .qname{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -458,6 +461,8 @@ async function publishPublic(){
 const tablesSorted = () => Object.entries(state.tables).map(([id,t])=>({id,...t})).sort((a,b)=>(a.order||9)-(b.order||9));
 const waiting = () => Object.entries(state.queue).map(([id,q])=>({id,...q})).filter(q=>q.status==="waiting"||q.status==="called").sort((a,b)=>a.createdAt-b.createdAt);
 const CALL_MIN=5;
+/* 待っている順に、席数に収まる組を選ぶ（入らない組はとばして次へ＝順番が前後する） */
+function nextBatch(list, seats){ const out=[]; let left=seats; for(const q of list){ const n=q.size||1; if(n<=left){ out.push(q); left-=n; } if(!left) break; } return out; }
 function nearTables(){ return tablesSorted().filter(t=>t.status==="playing" && remainMs(t)<=CALL_MIN*60000); }
 let nearKey="";
 function remainMs(t){ return (t.endsAt||0) - Date.now(); }
@@ -592,7 +597,16 @@ function renderQueue(){
   const el=$("#queue");
   if(!qs.length){ el.innerHTML='<li class="empty">待っている人はいません。左の受付から登録できます。</li>'; return; }
   const near=nearTables(), waitingOnly=qs.filter(q=>q.status!=="called");
-  const nudge = near.length && waitingOnly.length ? `<li class="nudge">${near.map(t=>esc(t.name)).join("・")}が残り${CALL_MIN}分を切りました。次の組（${waitingOnly[0].no??""}番 ${esc(waitingOnly[0].name)}さん）を呼び出しましょう。オーラスの合図があったら、それより前でもOK。</li>` : "";
+  const calledPeople=qs.filter(q=>q.status==="called").reduce((n,q)=>n+(q.size||1),0);
+  const need=Math.min(4, near.length*4 - calledPeople);
+  let nudge="";
+  if(near.length && waitingOnly.length && need>0){
+    const batch=nextBatch(waitingOnly, need), ppl=batch.reduce((n,q)=>n+(q.size||1),0);
+    nudge = `<li class="nudge">${near.map(t=>esc(t.name)).join("・")}が残り${CALL_MIN}分を切りました。次の卓の${need}席ぶんを呼び出しましょう（オーラスの合図があったら、それより前でもOK）。
+      <div class="nb">${batch.map(q=>`<span>${q.no??""}番 ${esc(q.name)}さん（${q.size||1}人）</span>`).join("")}</div>
+      ${ppl<need?`<small>あと${need-ppl}席はスタッフが入ります。</small>`:''}
+      <button class="btn sm" data-batch="${batch.map(q=>q.id).join(",")}" ${state.readOnly?'disabled':''}>この${batch.length}組をまとめて呼び出す</button></li>`;
+  }
   el.innerHTML = nudge + qs.map((q,i)=>`<li class="qitem ${q.status==='called'?'called':''}" data-id="${q.id}">
     <div class="qno" title="受付番号">${q.no??"—"}</div>
     <div style="min-width:0"><div class="qname">${esc(q.name)}</div>
@@ -718,6 +732,8 @@ $("#shiftTbl").onchange=e=>{
 $("#durSel").onchange=e=>{ const v=+e.target.value; safe(()=>store.set("settings","main",{durationMin:v})); state.settings.durationMin=v; };
 
 $("#queue").onclick=e=>{
+  const bb=e.target.closest("button[data-batch]");
+  if(bb){ const ids=bb.dataset.batch.split(",").filter(Boolean); const now=Date.now(); safe(async()=>{ for(const id of ids) await store.update("queue",id,{status:"called",calledAt:now}); }); return; }
   const b=e.target.closest("button[data-qact]"); if(!b) return; const id=b.closest(".qitem").dataset.id; const a=b.dataset.qact;
   if(a==="call") safe(()=>store.update("queue",id,{status:"called",calledAt:Date.now()}));
   if(a==="uncall") safe(()=>store.update("queue",id,{status:"waiting"}));
