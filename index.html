@@ -439,7 +439,10 @@ async function init(){
     if(!ok){ gate.hidden=false; $("#loginMsg").textContent=(user.email||"このアカウント")+" はスタッフとして登録されていません。別のアカウントでログインしてください。"; return; }
     gate.hidden=true; $("#who").textContent=user.email; subscribe();
   });
-  $("#loginBtn").onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>{ $("#loginMsg").textContent="ログインできませんでした（"+(e.code||"error")+"）。"; });
+  $("#loginBtn").onclick=()=>{ const pv=new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(pv).catch(e=>{
+      if(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-this-environment"){ auth.signInWithRedirect(pv).catch(e2=>{ $("#loginMsg").textContent="ログインできませんでした（"+(e2.code||"error")+"）。"; }); return; }
+      $("#loginMsg").textContent="ログインできませんでした（"+(e.code||"error")+"）。"+(e.code==="auth/popup-closed-by-user"?"":"iPadのときは、設定 → Safari →「ポップアップブロック」をオフにしてもう一度試してください。"); }); };
   $("#logoutBtn").onclick=()=>auth.signOut().then(()=>location.reload());
   $("#login").insertAdjacentHTML("beforeend","");
 }
