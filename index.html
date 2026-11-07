@@ -298,6 +298,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="panel scroll"><table class="rank" id="rankTbl"></table></div>
     <h2 class="sec">対局の記録</h2>
     <div class="hist" id="hist"></div>
+    <div class="panel" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+      <b>データのリセット</b>
+      <span class="hint">待ち列・受付番号・対局の記録・ランキングをすべて消して、卓を全部「空き」に戻します（スタッフとシフトは残ります）。練習のあとや本番の前に使います。<b>本番中のお客さんのデータも消えるので注意。</b></span>
+      <button class="btn quiet" type="button" id="resetBtn">データをリセットする</button>
+    </div>
   </section>
 
   <!-- シフト -->
@@ -778,6 +783,19 @@ const PLAN_STAFF=[["るきあ","churen"],["北村","churen"],["河辺","churen"]
 /* [開始, 終了, 打つ人, 受付] */
 const PLAN={1:[["09:30","10:00","北村,るきあ","原"],["10:00","12:00","イカイさん","るきあ"],["12:00","12:30","るきあ,河辺",""],["12:30","13:00","るきあ,河辺","原"],["13:00","13:30","るきあ,本庄","原"],["13:30","14:00","るきあ,本庄",""],["14:00","14:30","北村,本庄",""],["14:30","15:00","北村,本庄","鈴木"],["15:00","17:00","本庄,るきあ","鈴木"],["17:00","17:30","北村,るきあ","鈴木"],["17:30","18:30","北村,るきあ",""]],
             2:[["09:30","10:00","北村,るきあ","原"],["10:00","10:30","北村,るきあ",""],["10:30","12:00","るきあ,河辺",""],["12:00","14:00","イカイさん",""],["14:00","15:00","イカイさん","北村"],["15:00","15:30","イカイさん,山本","原"],["15:30","16:00","イカイさん,山本",""]]};
+let resetArmed=false;
+document.addEventListener("click",e=>{
+  if(e.target.id!=="resetBtn" || state.readOnly) return;
+  const b=e.target;
+  if(!resetArmed){ resetArmed=true; b.textContent="本当に消す？もう一度押すとリセットします"; b.classList.add("danger"); setTimeout(()=>{ resetArmed=false; b.textContent="データをリセットする"; b.classList.remove("danger"); },6000); return; }
+  resetArmed=false; b.disabled=true; b.textContent="リセット中…";
+  safe(async()=>{
+    for(const id of Object.keys(state.queue)) await store.del("queue",id);
+    for(const id of Object.keys(state.games)) await store.del("games",id);
+    for(const d of TABLE_DEFS){ const {id,...rest}=d; const cur=state.tables[id]; await store.set("tables",id,{...rest, status: cur&&cur.status==="closed"?"closed":"free"}); }
+    b.textContent="リセットしました"; b.disabled=false; render();
+  });
+});
 let importArmed=false;
 document.addEventListener("click",e=>{
   if(e.target.id!=="importPlan" || state.readOnly) return;
