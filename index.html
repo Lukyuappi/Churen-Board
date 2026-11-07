@@ -256,10 +256,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <div>
         <h2 class="sec">受付</h2>
         <form class="panel" id="regForm" autocomplete="off">
-          <div class="field">
-            <label for="regName">呼び出し名（ニックネーム可）</label>
-            <input type="text" id="regName" maxlength="16" placeholder="例：ぺろっぱ" required>
-          </div>
+          <input type="hidden" id="regName" value="">
           <div class="field">
             <label>一緒に打つ人の内訳（同卓希望はまとめて1組で登録）</label>
             <div class="steps" id="regLevels">
@@ -758,16 +755,17 @@ $("#regLevels").onclick=e=>{ const b=e.target.closest("button.stp"); if(!b) retu
 paintReg();
 $("#regForm").onsubmit=e=>{
   e.preventDefault(); if(state.readOnly) return;
-  const name=$("#regName").value.trim(); if(!name) return;
   const n=regTotal();
   if(!n){ const h=$("#regLevelHint"); h.className="hint err"; h.textContent="A・B・Cの人数を入れてください（1〜4人）。"; return; }
   const levels={...regLv};
   const main = levels.new?"new":levels.net?"net":"exp";
   const members=[...$("#regMembers").querySelectorAll("input")].map(i=>({level:i.dataset.lv, name:i.value.trim()}));
   const no = Object.values(state.queue).reduce((m,q)=>Math.max(m,q.no||0),0) + 1;
+  const nicks=members.map(m=>m.name).filter(Boolean);
+  const name = nicks.length ? nicks.join("・") : `${no}番`;
   const data={no, name, size:n, levels, members, level:main, help:(levels.new+levels.net)>0, status:"waiting", createdAt:Date.now()};
   safe(async()=>{ await store.set("queue",rid(),data); $("#regName").value=""; regLv={new:0,net:0,exp:0}; paintReg();
-    const h=$("#regLevelHint"); h.className="hint"; h.className="hint ok"; h.textContent=`登録しました。受付番号は ${no}番 です。持ち帰りカードに番号を書いて渡してください。`; $("#regName").focus(); });
+    const h=$("#regLevelHint"); h.className="hint"; h.className="hint ok"; h.textContent=`登録しました。受付番号は ${no}番 です。持ち帰りカードに番号を書いて渡してください。`; const f=$("#regMembers input"); if(f) f.focus(); });
 };
 $("#staffOrg").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; staffOrg=b.dataset.v; $("#staffOrg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); };
 $("#staffForm").onsubmit=e=>{
