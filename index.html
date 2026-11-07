@@ -370,7 +370,7 @@ const WINDS = ["東","南","西","北"];
 const TABLE_DEFS = [
   {id:"t1", name:"1卓", wind:"東", order:1, status:"free"},
   {id:"t2", name:"2卓", wind:"南", order:2, status:"free"},
-  {id:"t3", name:"予備卓", wind:"西", order:3, status:"closed"},
+  {id:"t3", name:"3卓", wind:"西", order:3, status:"free"},
 ];
 const START_POINTS = 25000;
 const LEVELS = { new:"未経験", net:"リアル初めて", exp:"経験者" };
@@ -489,8 +489,8 @@ function fmtRemain(ms){ const neg=ms<0; const s=Math.floor(Math.abs(ms)/1000); r
 function estWaitMin(){
   const active = tablesSorted().filter(t=>t.status!=="closed");
   if(!active.length) return null;
-  const people = waiting().reduce((n,q)=>n+(q.size||1),0);
-  if(!people) return 0;
+  // これから来る人（1人）も含めて数える。卓が全部埋まっていれば「すぐ」にはならない
+  const people = waiting().reduce((n,q)=>n+(q.size||1),0) + 1;
   const dur = state.settings.durationMin||30;
   const soonest = active.map(t=> t.status==="playing" ? Math.max(0,remainMs(t))/60000 + 5 : 0).sort((a,b)=>a-b);
   const rounds = Math.ceil(people/4); // 4人で1卓
@@ -598,11 +598,13 @@ function render(){
   if(view==="score") renderScore();
   if(view==="board"){ renderQR(); renderBoard(); }
 }
+let migrated=false;
 function renderTables(){
   const el=$("#tables"); const ts=tablesSorted();
   if(!state.ready){ return; }
+  if(!migrated && !state.readOnly){ const t3=ts.find(t=>t.id==="t3"&&t.name==="予備卓"); if(t3){ migrated=true; safe(()=>store.update("tables","t3",{name:"3卓", ...(t3.status==="closed"?{status:"free"}:{})})); } }
   if(!ts.length){
-    el.innerHTML='<div class="empty">卓のデータがまだありません。<br><button class="btn" id="seedBtn" style="margin-top:10px">1卓・2卓・予備卓を作る</button></div>';
+    el.innerHTML='<div class="empty">卓のデータがまだありません。<br><button class="btn" id="seedBtn" style="margin-top:10px">1卓・2卓・3卓を作る</button></div>';
     $("#seedBtn").onclick=()=>safe(async()=>{ for(const t of TABLE_DEFS){ const {id,...rest}=t; await store.set("tables",id,rest); } });
     return;
   }
@@ -630,14 +632,14 @@ function renderTables(){
     if(t.status==="closed"){
       return `<article class="tcard closed" data-id="${t.id}">
         <div class="thead"><div class="wind">${esc(t.wind)}</div><div class="tname">${esc(t.name)}</div><span class="pill closed">使わない</span></div>
-        <div class="free-note">予備の卓です。混んできたら開けられます。</div>
+        <div class="free-note">いまは使っていない卓です。</div>
         <div class="tactions"><button class="btn quiet" data-act="open" ${state.readOnly?'disabled':''}>この卓を開ける</button></div></article>`;
     }
     return `<article class="tcard free" data-id="${t.id}">
       <div class="thead"><div class="wind">${esc(t.wind)}</div><div class="tname">${esc(t.name)}</div><span class="pill free">空き</span></div>
       <div class="free-note">待ち列からお客さんを選んで着席させます。足りない席はスタッフが入ります（${dur}分・東風戦）。</div>
       <div class="tactions"><button class="btn" data-act="seat" ${state.readOnly?'disabled':''}>着席させる</button>
-      ${t.order===3?`<button class="btn quiet sm" data-act="close" ${state.readOnly?'disabled':''}>予備に戻す</button>`:''}</div></article>`;
+      ${t.order===3?`<button class="btn quiet sm" data-act="close" ${state.readOnly?'disabled':''}>この卓を使わない</button>`:''}</div></article>`;
   }).join("");
 }
 function renderQueue(){

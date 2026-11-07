@@ -185,7 +185,7 @@ h2{margin:6px 0 0;font-size:15px;font-weight:900;letter-spacing:.04em}
   // スタッフ用画面と同じ計算：4人で1卓、1対局＋入れ替え5分
   function estWaitMin(d){
     const active=d.tables||[]; if(!active.length) return null;
-    const people=d.waitingPeople||0; if(!people) return 0;
+    const people=(d.waitingPeople||0)+1; // これから来る人も含める
     const dur=d.durationMin||30;
     const soonest=active.map(t=> t.status==="playing" ? Math.max(0,(t.endsAt||0)-Date.now())/60000+5 : 0).sort((a,b)=>a-b);
     const rounds=Math.ceil(people/4); let total=0;
